@@ -75,7 +75,7 @@ class Trainer:
         self.trainloader = DataLoader(
             self.trainset, 
             batch_size=self.batch_size, 
-            shuffle=(self.sampler is None), 
+            shuffle=(sampler is None), 
             sampler=self.sampler,
             num_workers=4, 
             pin_memory=True

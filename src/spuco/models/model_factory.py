@@ -4,7 +4,7 @@ from typing import Tuple
 
 import numpy as np
 import torch
-
+from torchvision.models import resnet50
 from spuco.models import MLP, LeNet, Bert, DistilBert, SpuCoModel
 from spuco.utils.random_seed import seed_randomness
 
@@ -16,6 +16,7 @@ class SupportedModels(Enum):
     LeNet = "lenet"
     BERT = "bert"
     DistilBERT = "distilbert"
+    ResNet50 = "resnet50"
 
 def model_factory(arch: str, input_shape: Tuple[int, int, int], num_classes: int):
     """
@@ -50,6 +51,9 @@ def model_factory(arch: str, input_shape: Tuple[int, int, int], num_classes: int
     elif arch == SupportedModels.LeNet.DistilBERT:
         backbone = DistilBert.from_pretrained('distilbert-base-uncased')
         representation_dim = backbone.d_out
+    elif arch == SupportedModels.ResNet50:
+        backbone = resnet50(weights='DEFAULT')
+        representation_dim = backbone.fc.out_features
     else:
         raise NotImplemented(f"Model {arch} not supported currently")
     return SpuCoModel(

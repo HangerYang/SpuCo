@@ -103,12 +103,12 @@ class GroupDRO():
         seed_randomness(torch_module=torch, random_module=random, numpy_module=np)
 
         assert batch_size >= len(trainset.group_partition), "batch_size must be >= number of groups (Group DRO requires at least 1 example from each group)"
-
         def forward_pass(self, batch):
             inputs, labels, groups = batch
             inputs, labels, groups = inputs.to(self.device), labels.to(self.device), groups.to(self.device)
             outputs = self.model(inputs)
             loss = self.criterion(outputs, labels, groups)
+            # loss = self.criterion(outputs, labels)
             return loss, outputs, labels
         
         self.num_epochs = num_epochs
@@ -132,7 +132,13 @@ class GroupDRO():
         for key in self.group_partition.keys():
             self.base_indices.extend(self.group_partition[key])
             self.sampling_weights.extend([max_group_len / len(self.group_partition[key])] * len(self.group_partition[key]))
-        
+
+        # sum_group_len = sum([len(self.group_partition[key]) for key in self.group_partition.keys()])
+        # self.base_indices = []
+        # self.sampling_weights = []
+        # for key in self.group_partition.keys():
+        #     self.base_indices.extend(self.group_partition[key])
+        #     self.sampling_weights.extend([max_group_len / len(self.group_partition[key])] * len(self.group_partition[key]))
     def train(self):
         """
         Trains the model using the given hyperparameters.
