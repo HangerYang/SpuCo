@@ -1,6 +1,8 @@
 import torch 
-
-device = torch.device("cuda:4")
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+install("../..")
+device = torch.device("cuda:6")
 
 from spuco.utils import set_seed
 
@@ -51,10 +53,10 @@ from spuco.invariant_train import GroupDRO
 
 group_dro = GroupDRO(
     model=model,
-    num_epochs=300,
+    num_epochs=150,
     trainset=group_labeled_trainset,
     batch_size=128,
-    optimizer=SGD(model.parameters(), lr=0.00001, momentum=0.9,weight_decay = 1.0, nesterov=True),
+    optimizer=SGD(model.parameters(), lr=0.00001, momentum=0.9,weight_decay = 1),
     device=device,
     verbose=True
 )

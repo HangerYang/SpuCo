@@ -1,6 +1,6 @@
 import torch 
 
-device = torch.device("cuda:4")
+device = torch.device("cuda:6")
 from spuco.utils import set_seed
 
 set_seed(0)
@@ -41,10 +41,10 @@ from spuco.invariant_train import ERM
 
 erm = ERM(
     model=model,
-    num_epochs=300,
+    num_epochs=150,
     trainset=trainset,
     batch_size=128,
-    optimizer=SGD(model.parameters(), lr=0.00001, momentum=0.9, nesterov=True, weight_decay = 1.0),
+    optimizer=SGD(model.parameters(), lr=0.00001, momentum=0.9, nesterov=False, weight_decay = 1.0),
     device=device,
     verbose=True
 )
