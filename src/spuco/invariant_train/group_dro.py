@@ -6,6 +6,8 @@ import torch
 from torch import nn, optim
 
 from spuco.datasets import GroupLabeledDatasetWrapper
+from spuco.evaluate import Evaluator 
+from spuco.invariant_train import BaseInvariantTrain
 from spuco.utils import CustomIndicesSampler, Trainer
 from spuco.utils.random_seed import seed_randomness
 
@@ -20,7 +22,6 @@ class GroupWeightedLoss(nn.Module):
         num_groups: int,
         group_weight_lr: float = 0.01,
         device: torch.device = torch.device("cpu"),
-
     ):
         """
         Initializes GroupWeightedLoss.
@@ -66,10 +67,9 @@ class GroupWeightedLoss(nn.Module):
         group_weights = group_weights / group_weights.sum()
         self.group_weights.data = group_weights.data
 
-class GroupDRO():
+class GroupDRO(BaseInvariantTrain):
     """
     Group DRO (https://arxiv.org/abs/1911.08731)
-    Is this 
     """
     def __init__(
         self,
@@ -79,7 +79,8 @@ class GroupDRO():
         optimizer: optim.Optimizer,
         num_epochs: int,
         device: torch.device = torch.device("cpu"),
-        verbose=False
+        val_evaluator: Evaluator = None,
+        verbose=False,
     ):
         """
         Initializes GroupDRO.
@@ -100,9 +101,11 @@ class GroupDRO():
         :type verbose: bool
         """
 
-         
-        seed_randomness(torch_module=torch, random_module=random, numpy_module=np)
 
+        seed_randomness(torch_module=torch, random_module=random, numpy_module=np)
+    
+        super().__init__(val_evaluator=val_evaluator, verbose=verbose)
+    
         assert batch_size >= len(trainset.group_partition), "batch_size must be >= number of groups (Group DRO requires at least 1 example from each group)"
         def forward_pass(self, batch):
             inputs, labels, groups = batch
@@ -133,21 +136,14 @@ class GroupDRO():
         for key in self.group_partition.keys():
             self.base_indices.extend(self.group_partition[key])
             self.sampling_weights.extend([max_group_len / len(self.group_partition[key])] * len(self.group_partition[key]))
-
-        # sum_group_len = sum([len(self.group_partition[key]) for key in self.group_partition.keys()])
-        # self.base_indices = []
-        # self.sampling_weights = []
-        # for key in self.group_partition.keys():
-        #     self.base_indices.extend(self.group_partition[key])
-        #     self.sampling_weights.extend([max_group_len / len(self.group_partition[key])] * len(self.group_partition[key]))
-    def train(self):
+        
+    def train_epoch(self, epoch):
         """
         Trains the model using the given hyperparameters.
         """
-        for epoch in range(self.num_epochs):
-            self.trainer.sampler.indices = random.choices(
-                population=self.base_indices,
-                weights=self.sampling_weights, 
-                k=len(self.trainer.trainset)
-            )
-            self.trainer.train_epoch(epoch)
+        self.trainer.sampler.indices = random.choices(
+            population=self.base_indices,
+            weights=self.sampling_weights, 
+            k=len(self.trainer.trainset)
+        )
+        self.trainer.train_epoch(epoch)
