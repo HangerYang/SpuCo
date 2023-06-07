@@ -12,6 +12,8 @@ from spuco.datasets import SpuCoMNIST, SpuriousFeatureDifficulty
 import torchvision.transforms as T
 from spuco.models import model_factory
 from spuco.utils import Trainer, set_seed, get_group_ratios
+from spuco.datasets import GroupLabeledDatasetWrapper
+from spuco.invariant_train import GroupBalanceBatchERM
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--gpu", type=int, default=0)
@@ -71,3 +73,37 @@ testset = SpuCoMNIST(
     split="test"
 )
 testset.initialize()
+group_trainset = GroupLabeledDatasetWrapper(trainset, trainset.group_partition)
+model = model_factory("lenet", trainset[0][0].shape, trainset.num_classes).to(device)
+
+val_evaluator = Evaluator(
+    testset=testset,
+    group_partition=valset.group_partition,
+    group_weights=trainset.group_weights,
+    batch_size=64,
+    model=model,
+    device=device,
+    verbose=True
+)
+group_balance = GroupBalanceBatchERM(
+    model=model,
+    num_epochs=num_epochs,
+    trainset=group_trainset,
+    batch_size=batch_size,
+    optimizer=SGD(model.parameters(), lr=lr, momentum=momentum, nesterov=True, weight_decay=weight_decay),
+    device=device,
+    verbose=True
+)
+group_balance.train()
+model = group_dro.best_model
+
+evaluator = Evaluator(
+    testset=testset,
+    group_partition=testset.group_partition,
+    group_weights=trainset.group_weights,
+    batch_size=64,
+    model=model,
+    device=device,
+    verbose=True
+)
+evaluator.evaluate()
