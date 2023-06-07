@@ -45,6 +45,13 @@ set_seed(args.seed)
 transform = transforms.Compose([
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         ])
+trainset = SpuCoAnimals(
+    root=args.root_dir,
+    label_noise=args.label_noise,
+    split="train",
+    transform=transform,
+)
+trainset.initialize()
 valset = SpuCoAnimals(
     root=args.root_dir,
     label_noise=args.label_noise,
@@ -52,9 +59,9 @@ valset = SpuCoAnimals(
     transform=transform,
 )
 valset.initialize()
-model = model_factory(args.arch, valset[0][0].shape, valset.num_classes, pretrained=args.pretrained).to(device)
+model = model_factory(args.arch, trainset[0][0].shape, trainset.num_classes, pretrained=args.pretrained).to(device)
 trainer = Trainer(
-    trainset=valset,
+    trainset=trainset,
     model=model,
     batch_size=args.batch_size,
     optimizer=SGD(model.parameters(), lr=args.lr, weight_decay=args.weight_decay, momentum=args.momentum),

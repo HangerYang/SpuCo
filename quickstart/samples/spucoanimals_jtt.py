@@ -76,34 +76,45 @@ torch.save(model.state_dict(), f"models/spucoanimals/jtt_lr={args.lr}_wd={args.w
 
 
 if not args.pretrained and args.infer_num_epochs < 0:
-    max_f1 = 0
     logits_files = glob(f"logits/spucoanimals/lr=0.001_wd=0.0001_seed={args.seed}/valset*.pt")
     for logits_file in logits_files:
         epoch = int(logits_file.split("/")[-1].split(".")[0].split("_")[-1])
-        if epoch >= args.num_epochs:
-            continue
-        logits = torch.load(logits_file)
-        predictions = torch.argmax(logits, dim=-1).detach().cpu().tolist()
-        jtt = JTTInference(
-            predictions=predictions,
-            class_labels=valset.labels
-        )
-        epoch_group_partition = jtt.infer_groups()
+        if epoch == args.num_epochs:
+            logits = torch.load(logits_file)
+            predictions = torch.argmax(logits, dim=-1).detach().cpu().tolist()
+            jtt = JTTInference(
+                predictions=predictions,
+                class_labels=valset.labels)
+            epoch_group_partition = jtt.infer_groups()
+                
+    # max_f1 = 0
+    # logits_files = glob(f"logits/spucoanimals/lr=0.001_wd=0.0001_seed={args.seed}/valset*.pt")
+    # for logits_file in logits_files:
+    #     epoch = int(logits_file.split("/")[-1].split(".")[0].split("_")[-1])
+    #     if epoch >= args.num_epochs:
+    #         continue
+    #     logits = torch.load(logits_file)
+    #     predictions = torch.argmax(logits, dim=-1).detach().cpu().tolist()
+    #     jtt = JTTInference(
+    #         predictions=predictions,
+    #         class_labels=valset.labels
+    #     )
+    #     epoch_group_partition = jtt.infer_groups()
 
-        upsampled_indices = epoch_group_partition[(0,1)]
-        minority_indices = valset.group_partition[(0,1)]
-        minority_indices.extend(valset.group_partition[(1,0)])
-        # compute F1 score on the validation set
-        upsampled = np.zeros(len(predictions))
-        upsampled[np.array(upsampled_indices)] = 1
-        minority = np.zeros(len(predictions))
-        minority[np.array(minority_indices)] = 1
-        f1 = f1_score(minority, upsampled)
-        if f1 > max_f1:
-            max_f1 = f1
-            args.infer_num_epochs = epoch
-            group_partition = epoch_group_partition
-            print("New best F1 score:", f1, "at epoch", epoch)
+    #     upsampled_indices = epoch_group_partition[(0,1)]
+    #     minority_indices = valset.group_partition[(0,1)]
+    #     minority_indices.extend(valset.group_partition[(1,0)])
+    #     # compute F1 score on the validation set
+    #     upsampled = np.zeros(len(predictions))
+    #     upsampled[np.array(upsampled_indices)] = 1
+    #     minority = np.zeros(len(predictions))
+    #     minority[np.array(minority_indices)] = 1
+    #     f1 = f1_score(minority, upsampled)
+    #     if f1 > max_f1:
+    #         max_f1 = f1
+    #         args.infer_num_epochs = epoch
+    #         group_partition = epoch_group_partition
+    #         print("New best F1 score:", f1, "at epoch", epoch)
 
 
 trainer = Trainer(
