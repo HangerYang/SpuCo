@@ -9,7 +9,8 @@ import torchvision.transforms as transforms
 from sklearn.metrics import f1_score
 from torch.optim import SGD
 from wilds import get_dataset
-
+from copy import deepcopy
+from sklearn.metrics import precision_score,recall_score
 from spuco.datasets import GroupLabeledDatasetWrapper, SpuCoAnimals
 from spuco.evaluate import Evaluator
 from spuco.group_inference import JTTInference
@@ -78,10 +79,31 @@ for i in range(args.infer_num_epochs):
     )
 
     group_partition = jtt.infer_groups()
+    
+    upsampled_indices = deepcopy(group_partition[(0,1)])
+    minority_indices = deepcopy(trainset.group_partition[(0,1)])
+    minority_indices.extend(trainset.group_partition[(1,0)] + trainset.group_partition[(2,3)] + trainset.group_partition[(3,2)])
+    # compute precision score on the validation set
+    upsampled = np.zeros(len(predictions))
+    upsampled[np.array(upsampled_indices)] = 1
+    minority = np.zeros(len(predictions))
+    minority[np.array(minority_indices)] = 1
+    precision = precision_score(minority, upsampled)
+    recall = recall_score(minority, upsampled)
+    print(len(group_partition[(0,1)]), len(minority_indices))
+    print(precision)
+    print(recall)
+    print(i)
+    # if precision > max_precision:
+    #     max_precision = precision
+    #     args.infer_num_epochs = i
+    #     group_partition = group_partition
+    #     print("New best precision score:", precision, "at epoch", i)
+    np.savez("/home/hyang/SpuCo/quickstart/samples/jtt_analyze/jtt_{}".format(i), logits=trainer.get_trainset_outputs().cpu().detach().numpy(), precision=precision, recall=recall)
 
-    for key in sorted(group_partition.keys()):
-        print(key, len(group_partition[key]))
-    np.savez("jtt_analyze/epoch_{}_lr_{}_wd_{}_seed_{}".format(i, args.lr, args.weight_decay, args.seed), gp=group_partition[(0,1)], gd = get_group_ratios(group_partition[(0,1)], valset.group_partition))
+    # for key in sorted(group_partition.keys()):
+    #     print(key, len(group_partition[key]))
+    # np.savez("jtt_analyze/epoch_{}_lr_{}_wd_{}_seed_{}".format(i, args.lr, args.weight_decay, args.seed), gp=group_partition[(0,1)], gd = get_group_ratios(group_partition[(0,1)], valset.group_partition))
 
 
 

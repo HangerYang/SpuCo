@@ -71,52 +71,48 @@ testset = SpuCoAnimals(
 testset.initialize()
 
 model = model_factory(args.arch, trainset[0][0].shape, trainset.num_classes, pretrained=args.pretrained).to(device)
-os.makedirs("models/spucoanimals", exist_ok=True)
-torch.save(model.state_dict(), f"models/spucoanimals/jtt_lr={args.lr}_wd={args.weight_decay}_seed={args.seed}_upsample_factor={args.upsample_factor}.pt")
+# os.makedirs("models/spucoanimals", exist_ok=True)
+# torch.save(model.state_dict(), f"models/spucoanimals/jtt_lr={args.lr}_wd={args.weight_decay}_seed={args.seed}_upsample_factor={args.upsample_factor}.pt")
 
 
-if not args.pretrained and args.infer_num_epochs < 0:
-    logits_files = glob(f"logits/spucoanimals/lr=0.001_wd=0.0001_seed={args.seed}/valset*.pt")
-    for logits_file in logits_files:
-        epoch = int(logits_file.split("/")[-1].split(".")[0].split("_")[-1])
-        if epoch == args.num_epochs:
-            logits = torch.load(logits_file)
-            predictions = torch.argmax(logits, dim=-1).detach().cpu().tolist()
-            jtt = JTTInference(
-                predictions=predictions,
-                class_labels=valset.labels)
-            epoch_group_partition = jtt.infer_groups()
-                
-    # max_f1 = 0
-    # logits_files = glob(f"logits/spucoanimals/lr=0.001_wd=0.0001_seed={args.seed}/valset*.pt")
-    # for logits_file in logits_files:
-    #     epoch = int(logits_file.split("/")[-1].split(".")[0].split("_")[-1])
-    #     if epoch >= args.num_epochs:
-    #         continue
-    #     logits = torch.load(logits_file)
-    #     predictions = torch.argmax(logits, dim=-1).detach().cpu().tolist()
-    #     jtt = JTTInference(
-    #         predictions=predictions,
-    #         class_labels=valset.labels
-    #     )
-    #     epoch_group_partition = jtt.infer_groups()
+# if not args.pretrained and args.infer_num_epochs < 0:
+#     max_f1 = 0
+#     logits_files = glob(f"logits/spucoanimals/lr=0.001_wd=0.0001_seed={args.seed}/valset*.pt")
+#     for logits_file in logits_files:
+#         epoch = int(logits_file.split("/")[-1].split(".")[0].split("_")[-1])
+#         if epoch >= args.num_epochs:
+#             continue
+#         logits = torch.load(logits_file)
+#         predictions = torch.argmax(logits, dim=-1).detach().cpu().tolist()
+#         jtt = JTTInference(
+#             predictions=predictions,
+#             class_labels=valset.labels
+#         )
+#         epoch_group_partition = jtt.infer_groups()
 
-    #     upsampled_indices = epoch_group_partition[(0,1)]
-    #     minority_indices = valset.group_partition[(0,1)]
-    #     minority_indices.extend(valset.group_partition[(1,0)])
-    #     # compute F1 score on the validation set
-    #     upsampled = np.zeros(len(predictions))
-    #     upsampled[np.array(upsampled_indices)] = 1
-    #     minority = np.zeros(len(predictions))
-    #     minority[np.array(minority_indices)] = 1
-    #     f1 = f1_score(minority, upsampled)
-    #     if f1 > max_f1:
-    #         max_f1 = f1
-    #         args.infer_num_epochs = epoch
-    #         group_partition = epoch_group_partition
-    #         print("New best F1 score:", f1, "at epoch", epoch)
+#         upsampled_indices = epoch_group_partition[(0,1)]
+#         minority_indices = valset.group_partition[(0,1)]
+#         minority_indices.extend(valset.group_partition[(1,0)])
+#         # compute F1 score on the validation set
+#         upsampled = np.zeros(len(predictions))
+#         upsampled[np.array(upsampled_indices)] = 1
+#         minority = np.zeros(len(predictions))
+#         minority[np.array(minority_indices)] = 1
+#         f1 = f1_score(minority, upsampled)
+#         if f1 > max_f1:
+#             max_f1 = f1
+#             args.infer_num_epochs = epoch
+#             group_partition = epoch_group_partition
+#             print("New best F1 score:", f1, "at epoch", epoch)
 
-
+# logits_file = "/home/yuyang/SpuCo/logits/spucoanimals/lr=0.001_wd=0.0001_seed=0/trainset_logits_epoch_7.pt"
+# logits = torch.load(logits_file)
+# predictions = torch.argmax(logits, dim=-1).detach().cpu().tolist()
+# jtt = JTTInference(
+#     predictions=predictions,
+#     class_labels=trainset.labels
+# )
+# group_partition = jtt.infer_groups()
 trainer = Trainer(
     trainset=trainset,
     model=model,
@@ -237,5 +233,3 @@ results_df.to_csv(args.results_csv, index=False)
 
 print('Done!')
 print('Results saved to', args.results_csv)
-
-

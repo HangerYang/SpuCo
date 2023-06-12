@@ -14,14 +14,13 @@ from spuco.models import model_factory
 from spuco.utils import Trainer, set_seed, get_group_ratios
 from spuco.datasets import GroupLabeledDatasetWrapper
 from spuco.invariant_train import GroupBalanceBatchERM
-
+from spuco.evaluate import Evaluator
 parser = argparse.ArgumentParser()
 parser.add_argument("--gpu", type=int, default=0)
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--root_dir", type=str, default="/data")
 parser.add_argument("--label_noise", type=float, default=0.0)
-parser.add_argument("--results_csv", type=str, default="results/spucoanimals_jtt.csv")
-parser.add_argument("--difficulty", type=str, default="magnitude_easy")
+parser.add_argument("--diff", type=str, default="magnitude_easy")
 parser.add_argument("--arch", type=str, default="resnet18")
 parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--num_epochs", type=int, default=100)
@@ -29,11 +28,7 @@ parser.add_argument("--lr", type=float, default=1e-4)
 parser.add_argument("--weight_decay", type=float, default=1e-4)
 parser.add_argument("--momentum", type=float, default=0.9)
 parser.add_argument("--pretrained", action="store_true")
-parser.add_argument("--feature_noise", type=int, default=0.1)
-parser.add_argument("--label_noise", type=int, default=0.1)
-parser.add_argument("--infer_num_epochs", type=int, default=7)
-
-parser.add_argument("--upsample_factor", type=int, default=100)
+parser.add_argument("--feature_noise", type=float, default=0)
 
 args = parser.parse_args()
 
@@ -43,17 +38,17 @@ set_seed(args.seed)
 
 classes = [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]]
 
-if args.difficulty == "magnitude_easy":
+if args.diff == "easy":
     difficulty = SpuriousFeatureDifficulty.MAGNITUDE_EASY
-elif args.difficulty == "magnitude_medium":
+elif args.diff == "medium":
     difficulty = SpuriousFeatureDifficulty.MAGNITUDE_MEDIUM
-elif args.difficulty == "magnitude_hard":
+elif args.diff == "hard":
     difficulty = SpuriousFeatureDifficulty.MAGNITUDE_HARD
-elif args.difficulty == "variance_easy":
+elif args.diff == "easyv":
     difficulty = SpuriousFeatureDifficulty.VARIANCE_EASY
-elif args.difficulty == "variance_medium":
+elif args.diff == "mediumv":
     difficulty = SpuriousFeatureDifficulty.VARIANCE_MEDIUM
-elif args.difficulty == "variance_hard":
+elif args.diff == "hardv":
     difficulty = SpuriousFeatureDifficulty.VARIANCE_HARD
 
 
@@ -61,11 +56,19 @@ trainset = SpuCoMNIST(
     root="/data/mnist/",
     spurious_feature_difficulty=difficulty,
     spurious_correlation_strength=0.995,
+    core_feature_noise=args.feature_noise,
+    label_noise=args.label_noise,
     classes=classes,
     split="train"
 )
 trainset.initialize()
-
+valset = SpuCoMNIST(
+    root="/data/mnist/",
+    spurious_feature_difficulty=difficulty,
+    classes=classes,
+    split="val"
+)
+valset.initialize()
 testset = SpuCoMNIST(
     root="/data/mnist/",
     spurious_feature_difficulty=difficulty,
@@ -73,11 +76,10 @@ testset = SpuCoMNIST(
     split="test"
 )
 testset.initialize()
-group_trainset = GroupLabeledDatasetWrapper(trainset, trainset.group_partition)
 model = model_factory("lenet", trainset[0][0].shape, trainset.num_classes).to(device)
 
 val_evaluator = Evaluator(
-    testset=testset,
+    testset=valset,
     group_partition=valset.group_partition,
     group_weights=trainset.group_weights,
     batch_size=64,
@@ -87,15 +89,17 @@ val_evaluator = Evaluator(
 )
 group_balance = GroupBalanceBatchERM(
     model=model,
-    num_epochs=num_epochs,
-    trainset=group_trainset,
-    batch_size=batch_size,
-    optimizer=SGD(model.parameters(), lr=lr, momentum=momentum, nesterov=True, weight_decay=weight_decay),
+    val_evaluator=val_evaluator, 
+    num_epochs=args.num_epochs,
+    group_partition = trainset.group_partition,
+    trainset=trainset,
+    batch_size=args.batch_size,
+    optimizer=SGD(model.parameters(), lr=args.lr, momentum=args.momentum, nesterov=True, weight_decay=args.weight_decay),
     device=device,
     verbose=True
 )
 group_balance.train()
-model = group_dro.best_model
+model = group_balance.best_model
 
 evaluator = Evaluator(
     testset=testset,
@@ -107,3 +111,4 @@ evaluator = Evaluator(
     verbose=True
 )
 evaluator.evaluate()
+np.savez("group_balance/group_balance_diff_{}_seed_{}_feat_{}_label_{}".format(args.diff, args.seed, args.feature_noise, args.label_noise), worst_acc=evaluator.worst_group_accuracy[1], ave_acc=evaluator.average_accuracy)
