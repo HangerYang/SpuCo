@@ -11,15 +11,15 @@ from spuco.evaluate import Evaluator
 from spuco.robust_train import ERM
 from spuco.models import model_factory
 from spuco.utils import set_seed
-from spuco.datasets import SpuCoAnimals, MASK_CORE, MASK_SPURIOUS
+from spuco.datasets import SpuCoBirds, MASK_CORE, MASK_SPURIOUS
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--gpu", type=int, default=0)
 parser.add_argument("--seed", type=int, default=0)
 parser.add_argument("--root_dir", type=str, default="/data")
 parser.add_argument("--label_noise", type=float, default=0.0)
-parser.add_argument("--results_csv", type=str, default="results/spucoanimals_erm.csv")
-parser.add_argument("--arch", type=str, default="resnet18", choices=["resnet18", "resnet50"])
+parser.add_argument("--results_csv", type=str, default="results/SpucoBirds_erm.csv")
+parser.add_argument("--arch", type=str, default="resnet18")
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--num_epochs", type=int, default=300)
 parser.add_argument("--lr", type=float, default=1e-3)
@@ -45,30 +45,30 @@ transform = transforms.Compose([
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         ])
 
-trainset = SpuCoAnimals(
+trainset = SpuCoBirds(
     root=args.root_dir,
     label_noise=args.label_noise,
     split="train",
     transform=transform,
-    mask_type=args.mask_type
+    download=False
 )
 trainset.initialize()
 
-valset = SpuCoAnimals(
+valset = SpuCoBirds(
     root=args.root_dir,
     label_noise=args.label_noise,
     split="val",
     transform=transform,
-    mask_type=args.mask_type
+    download=False
 )
 valset.initialize()
 
-testset = SpuCoAnimals(
+testset = SpuCoBirds(
     root=args.root_dir,
     label_noise=args.label_noise,
     split="test",
-    transform=transform,
-    mask_type=MASK_SPURIOUS
+    download=False,
+    transform=transform
 )
 testset.initialize()
 

@@ -10,7 +10,7 @@ from spuco.evaluate import Evaluator
 from spuco.robust_train import GroupBalanceBatchERM
 from spuco.models import model_factory
 from spuco.utils import set_seed
-from spuco.datasets import SpuCoAnimals
+from spuco.datasets import SpuCoBirds
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--gpu", type=int, default=0)
@@ -37,7 +37,7 @@ transform = transforms.Compose([
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         ])
 
-trainset = SpuCoAnimals(
+trainset = SpuCoBirds(
     root=args.root_dir,
     label_noise=args.label_noise,
     split="train",
@@ -45,7 +45,7 @@ trainset = SpuCoAnimals(
 )
 trainset.initialize()
 
-valset = SpuCoAnimals(
+valset = SpuCoBirds(
     root=args.root_dir,
     label_noise=args.label_noise,
     split="val",
@@ -53,7 +53,7 @@ valset = SpuCoAnimals(
 )
 valset.initialize()
 
-testset = SpuCoAnimals(
+testset = SpuCoBirds(
     root=args.root_dir,
     label_noise=args.label_noise,
     split="test",
