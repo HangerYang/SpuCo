@@ -11,6 +11,7 @@ import umap
 from spuco.group_inference.cluster import ClusterAlg
 from spuco.group_inference import Cluster
 from spuco.group_inference.george_utils.cluster import OverclusterModel
+from spuco.utils.misc import convert_labels_to_partition
 from spuco.utils.random_seed import seed_randomness
 
 
@@ -64,6 +65,7 @@ class GeorgeInference(Cluster):
             device=device,
             verbose=verbose
         )
+        self.Z = self.Z.cpu().numpy()
         if self.cluster_alg == ClusterAlg.KMEDOIDS:
             raise NotImplementedError("George doesn't support k-medoids clustering.")
         self.umap_n_components = umap_n_components
@@ -83,12 +85,12 @@ class GeorgeInference(Cluster):
         umap_model = umap.UMAP(n_components=self.umap_n_components, n_neighbors=self.umap_n_neighbors)
         self.Z = umap_model.fit_transform(scaled_Z)
         
-        cluster_partitions = {}
+        cluster_partitions = []
         for class_label in tqdm(self.class_partition.keys(), disable=not self.verbose, desc="Clustering class-wise"):
             Z = self.Z[self.class_partition[class_label]]
             overcluster = OverclusterModel(self.cluster_alg.value, max_k=self.max_clusters)
             overcluster.fit(Z)
-            cluster_partitions.append(self.convert_labels_to_partition(overcluster.predict(Z)))
+            cluster_partitions.append(convert_labels_to_partition(overcluster.predict(Z)))
             
         # Merge class-wise group partitions into one dictionary
         group_partition = {}

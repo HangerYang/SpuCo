@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #!/bin/bash
 
 # Run commands with all combinations of parameters
@@ -13,3 +14,10 @@ for lr in 1 5 10 20; do
 done
 
 # End of script
+=======
+python spuco_sun_lrmix.py --root_dir /data/spucosun/6.0 --gpu 4 --arch resnet50 --pretrained --wandb --num_epochs 40 --lr 1e-5 --weight_decay 1e-4 --wandb_run_name sun_lrmix_6.0
+
+python spuco_sun_lrmix.py --root_dir /data/spucosun/6.1 --gpu 4 --arch resnet50 --pretrained --wandb --num_epochs 40 --lr 1e-5 --weight_decay 1e-4 --wandb_run_name sun_lrmix_6.1
+
+python spuco_sun_lrmix.py --root_dir /data/spucosun/6.2 --gpu 4 --arch resnet50 --pretrained --wandb --num_epochs 40 --lr 1e-5 --weight_decay 1e-4 --wandb_run_name sun_lrmix_6.2
+>>>>>>> 7f31f9029ce3132559c148f7757bc8477080e000

@@ -1,0 +1,15 @@
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 0.001 --weight_decay 0.0001
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 0.001 --weight_decay 0.0005
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 0.001 --weight_decay 0.01
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 0.001 --weight_decay 0.1
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 0.001 --weight_decay 1.0
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 0.0001 --weight_decay 0.0001
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 0.0001 --weight_decay 0.0005
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 0.0001 --weight_decay 0.01
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 0.0001 --weight_decay 0.1
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 0.0001 --weight_decay 1.0
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 1e-05 --weight_decay 0.0001
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 1e-05 --weight_decay 0.0005
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 1e-05 --weight_decay 0.01
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 1e-05 --weight_decay 0.1
+python spuco_animals_erm.py --gpu 5 --arch cliprn50 --pretrained --num_epochs 100 --lr 1e-05 --weight_decay 1.0

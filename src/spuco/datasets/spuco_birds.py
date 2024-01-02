@@ -86,6 +86,10 @@ class SpuCoBirds(BaseSpuCoDataset):
             transforms.ToTensor()
         ])
         
+    def load_image(self, filename: str):
+        image = Image.open(filename).convert("RGB")
+        return image 
+    
     def load_data(self) -> SourceData:
         """
         Loads SpuCoBirds and sets spurious labels, label noise.
@@ -103,7 +107,7 @@ class SpuCoBirds(BaseSpuCoDataset):
             os.remove(self.filename)
             
         try:
-            self.data = SourceData()
+            self.data = SourceData(verbose=False)
             
             # Landbirds Land 
             landbirds_land = os.listdir(os.path.join(self.dset_dir, f"{LANDBIRDS}/{LAND}"))
@@ -169,9 +173,10 @@ class SpuCoBirds(BaseSpuCoDataset):
         :rtype: tuple
         """
         
-        image = self.base_transform(Image.open(self.load_image(self.data.X[index])))
+        image = self.base_transform(self.load_image(self.data.X[index]))
         label = self.data.labels[index]
         if self.transform is None:
             return image, label
         else:
             return self.transform(image), label
+    
