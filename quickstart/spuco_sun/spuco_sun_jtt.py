@@ -36,7 +36,7 @@ parser.add_argument("--wandb", action="store_true")
 parser.add_argument("--wandb_project", type=str, default="spuco")
 parser.add_argument("--wandb_entity", type=str, default=None)
 parser.add_argument("--wandb_run_name", type=str, default="spuco_sun_jtt")
-parser.add_argument("--upsample_factor", type=int, default=100, choices=[50,100])
+parser.add_argument("--upsample_factor", type=int, default=100)
 args = parser.parse_args()
 
 if args.wandb:

@@ -14,6 +14,18 @@ from spuco.robust_train import GroupDRO, SpareTrain
 from spuco.models import model_factory
 from spuco.utils import Trainer, set_seed
 
+class EnumAction(argparse.Action):
+    def __init__(self, **kwargs):
+        # We expect the enum type to be passed with the 'choices' keyword
+        enum_type = kwargs.pop("type", None)
+        kwargs["choices"] = [e.name for e in enum_type]
+        super().__init__(**kwargs)
+        self._enum = enum_type
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        # Convert the input string to the corresponding enum member
+        setattr(namespace, self.dest, self._enum[values])
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--gpu", type=int, default=0)
 parser.add_argument("--seed", type=int, default=0)
@@ -33,6 +45,7 @@ parser.add_argument("--infer_momentum", type=float, default=0.9)
 parser.add_argument("--infer_num_epochs", type=int, default=1)
 
 parser.add_argument("--high_sampling_power", type=int, default=2)
+
 
 args = parser.parse_args()
 
